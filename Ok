@@ -821,4 +821,18 @@ plrs.PlayerAdded:Connect(function(player)
     end)
 end)
   	end    
+}) local Tab = Window:MakeTab({
+	Name = "respawn",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+}) Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+      		local args = {
+    [1] = true
+}
+
+game:GetService("Players").LocalPlayer.Character.Giver.RemoteEvent:FireServer(unpack(args))
+
+  	end    
 }) 
