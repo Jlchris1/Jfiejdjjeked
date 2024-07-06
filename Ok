@@ -1,0 +1,571 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))() local Window = OrionLib:MakeWindow({Name = "JLhub bully people simulator", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"}) local Tab = Window:MakeTab({
+    Name = "loopkills",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+}) local Section = Tab:AddSection({
+    Name = "loops"
+}) Tab:AddButton({
+    Name = "v1 float loopkill",
+    Callback = function()
+              local prefix = '.'
+
+repeat wait() until game:IsLoaded()
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local loopAll = false
+local whitelist = {}
+local loopKill = {}
+
+local function findPlayer(Target)
+    if game:GetService("Players"):FindFirstChild(Target) then
+        return game:GetService("Players"):FindFirstChild(Target)
+    else
+        if Target ~= nil and Target ~= "" and Target ~= " " and Target then
+            local name = Target
+            local found = false
+            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if not found and (v.Name:lower():sub(1, #name) == name:lower() or v.DisplayName:lower():sub(1, #name) == name:lower()) then
+                    name = v
+                    found = true
+                end
+            end
+            if name ~= nil and name ~= Target then
+                return name
+            end
+        end
+    end
+end
+
+plr.Chatted:Connect(function(msg)
+    msg = msg:lower():split(" ")
+    if msg[1] == "/e" then
+        for i, v in next, msg do
+            msg[i] = msg[i + 1]
+        end
+    end
+    if msg[1] == prefix .. "lol" or (msg[1] == prefix .. "loopill" and msg[2] == "all") then
+        loopAll = true
+        for _, v in ipairs(plrs:GetPlayers()) do
+            if v ~= plr and not table.find(whitelist, v.Name) then
+                local rightArm = v.Character:FindFirstChild("Right Arm")
+                if rightArm then
+                    rightArm:Destroy()
+                    local arm = Instance.new("Part")
+                    arm.Size = Vector3.new(1, 3, 1) -- Adjust size if needed
+                    arm.Position = v.Character.Torso.Position + Vector3.new(2, 0, 0) -- Adjust position if needed
+                    arm.Anchored = false
+                    arm.CanCollide = false
+                    arm.Color = Color3.new(1, 0, 0) -- Adjust color if needed
+                    arm.Parent = game.Workspace -- Make sure the arm is visible
+                end
+            end
+        end
+    elseif msg[1] == prefix .. "kill" and findPlayer(msg[2]) then
+        table.insert(loopKill, findPlayer(msg[2]).Name)
+        local targetPlayer = findPlayer(msg[2])
+        local rightArm = targetPlayer.Character:FindFirstChild("Right Arm")
+        if rightArm then
+            rightArm:Destroy()
+            local arm = Instance.new("Part")
+            arm.Size = Vector3.new(1, 3, 1) -- Adjust size if needed
+            arm.Position = targetPlayer.Character.Torso.Position + Vector3.new(2, 0, 0) -- Adjust position if needed
+            arm.Anchored = false
+            arm.CanCollide = false
+            arm.Color = Color3.new(1, 0, 0) -- Adjust color if needed
+            arm.Parent = game.Workspace -- Make sure the arm is visible
+        end
+    elseif msg[1] == prefix .. "wl" and findPlayer(msg[2]) and not table.find(whitelist, findPlayer(msg[2]).Name) then
+        table.insert(whitelist, findPlayer(msg[2]).Name)
+    elseif msg[1] == prefix .. "bl" and findPlayer(msg[2]) and table.find(whitelist, findPlayer(msg[2]).Name) then
+        table.remove(whitelist, findPlayer(msg[2]).Name)
+    elseif msg[1] == prefix .. "rc" then
+        table.clear(loopKill)
+        loopAll = false
+        pcall(function()
+            plr.Character.PuttingDown:FireServer()
+        end)
+    end
+end)
+
+while true do
+    wait(0.1)
+    if loopAll then
+        for _, v in next, plrs:GetPlayers() do
+            if v ~= plr and not table.find(whitelist, v.Name) then
+                pcall(function()
+                    -- Launch player randomly
+                    local respawnPosition
+                    local rand = math.random(1, 4)
+                    if rand == 1 then
+                        -- Void
+                        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                    elseif rand == 2 then
+                        -- Sideways
+                        respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+                    elseif rand == 3 then
+                        -- Sky
+                        respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+                    else
+                        -- Space
+                        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                    end
+                    v.Character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+                    wait(0.0) -- Adjust the wait time if necessary
+                    plr.Character.Picking:FireServer(v.Character.Head, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                    wait(0.3) -- Adjust the wait time between picking and putting down
+                    plr.Character.PuttingDown:FireServer()
+                end)
+            end
+        end
+    end
+    if #loopKill > 0 then
+        for _, v in next, plrs:GetPlayers() do
+            if table.find(loopKill, v.Name) then
+                pcall(function()
+                    local accs = v.Character:FindFirstChildOfClass("Accessory")
+                    if accs then
+                        if accs:FindFirstChild("Handle") then
+                            plr.Character.Picking:FireServer(accs.Handle, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                        elseif accs:IsA("BasePart") then
+                            plr.Character.Picking:FireServer(accs, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                        end
+                    else
+                        plr.Character.Picking:FireServer(v.Character.HumanoidRootPart, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                        wait(0.6) -- Adjust the wait time between picking and putting down
+                        plr.Character.PuttingDown:FireServer()
+                    end
+                end)
+            end
+        end
+    end
+end
+
+plr.CharacterAdded:Connect(function(character)
+    -- Fling player randomly upon respawn
+    local respawnPosition
+    local rand = math.random(1, 4)
+    if rand == 1 then
+        -- Void
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+    elseif rand == 2 then
+        -- Sideways
+        respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+    elseif rand == 3 then
+        -- Sky
+        respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+    else
+        -- Space
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+    end
+    character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+end)
+      end    
+}) Tab:AddButton({
+	Name = "v3 loop",
+	Callback = function()
+      		local prefix = '?'
+
+repeat wait() until game:IsLoaded()
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local loopAll = false
+local loopSinglePlayer = nil
+local whitelist = {"bamned_alt3"}  -- Username to avoid from getting looped
+local loopKill = {}
+
+local UserInputService = game:GetService("UserInputService")
+
+local function shouldAvoid(player)
+    return table.find(whitelist, player.Name) ~= nil
+end
+
+local function isWhitelisted(player)
+    return table.find(whitelist, player.Name) ~= nil
+end
+
+local function handleRightArm(v)
+    local rightArm = v.Character:FindFirstChild("Right Arm")
+    if rightArm then
+        rightArm:Destroy()
+        local arm = Instance.new("Part")
+        arm.Size = Vector3.new(1, 3, 1) -- Adjust size if needed
+        arm.Position = v.Character.Torso.Position + Vector3.new(2, 0, 0) -- Adjust position if needed
+        arm.Anchored = false
+        arm.CanCollide = false
+        arm.Color = Color3.new(1, 0, 0) -- Adjust color if needed
+        arm.Parent = game.Workspace -- Make sure the arm is visible
+    end
+end
+
+-- Function to apply changes to a player character
+local function ApplyChangesToPlayer(player)
+    -- Check if the player's character exists
+    local character = player.Character
+    if character and not shouldAvoid(player) then
+        -- Apply the desired changes to the ArmAngleChange remote event
+        local armAngleChange = character:FindFirstChild("ArmAngleChange")
+        if armAngleChange then
+            armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        -- Apply the desired changes to the HeadWaist
+        local HeadWaist = character:FindFirstChild("HeadWaist")
+        if HeadWaist then
+            HeadWaist:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        -- Apply the desired changes to the HeadAngleChange remote event
+        local headAngleChange = character:FindFirstChild("HeadAngleChange")
+        if headAngleChange then
+            headAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        -- Instantly kill the player
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Health = 0
+        end
+    end
+end
+
+local function loopActions()
+    while loopAll do
+        for _, v in ipairs(plrs:GetPlayers()) do
+            if v ~= plr and not shouldAvoid(v) then
+                pcall(function()
+                    -- Launch player randomly
+                    local respawnPosition
+                    local rand = math.random(1, 4)
+                    if rand == 1 then
+                        -- Void
+                        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                    elseif rand == 2 then
+                        -- Sideways
+                        respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+                    elseif rand == 3 then
+                        -- Sky
+                        respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+                    else
+                        -- Space
+                        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                    end
+                    v.Character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+                    wait(0.0) -- Adjust the wait time if necessary
+                    plr.Character.Picking:FireServer(v.Character.Head, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                    wait(0.1) -- Adjust the wait time between picking and putting down
+                    plr.Character.PuttingDown:FireServer()
+                    
+                    -- Apply arm angle change
+                    local armAngleChange = v.Character:FindFirstChild("ArmAngleChange")
+                    if armAngleChange then
+                        armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+                    end
+                end)
+            end
+        end
+
+        wait(0.1)
+    end
+end
+
+local function loopSinglePlayerActions()
+    while loopSinglePlayer do
+        local player = loopSinglePlayer
+        if player and player.Character and not shouldAvoid(player) then
+            pcall(function()
+                -- Launch player randomly
+                local respawnPosition
+                local rand = math.random(1, 4)
+                if rand == 1 then
+                    -- Void
+                    respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                elseif rand == 2 then
+                    -- Sideways
+                    respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+                elseif rand == 3 then
+                    -- Sky
+                    respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+                else
+                    -- Space
+                    respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+                end
+                player.Character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+                wait(0.0) -- Adjust the wait time if necessary
+                plr.Character.Picking:FireServer(player.Character.Head, Vector3.new(0, -99999999999999999999999999999990, 0)) -- Adjust the force to a lower value
+                wait(0.3) -- Adjust the wait time between picking and putting down
+                plr.Character.PuttingDown:FireServer()
+                
+                -- Apply arm angle change
+                local armAngleChange = player.Character:FindFirstChild("ArmAngleChange")
+                if armAngleChange then
+                    armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+                end
+
+                ApplyChangesToPlayer(player)
+            end)
+        end
+
+        wait(0.3)
+    end
+end
+
+local function startLoopAll()
+    loopAll = true
+    spawn(loopActions)
+end
+
+local function stopLoopAll()
+    loopAll = false
+end
+
+local function startLoopSinglePlayer(player)
+    loopSinglePlayer = player
+    spawn(loopSinglePlayerActions)
+end
+
+local function stopLoopSinglePlayer()
+    loopSinglePlayer = nil
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
+        if loopAll then
+            stopLoopAll()
+            stopLoopSinglePlayer()
+        else
+            startLoopAll()
+        end
+    end
+end)
+
+local function findPlayer(Target)
+    if game:GetService("Players"):FindFirstChild(Target) then
+        return game:GetService("Players"):FindFirstChild(Target)
+    else
+        if Target ~= nil and Target ~= "" and Target ~= " " and Target then
+            local name = Target
+            local found = false
+            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if not found and (v.Name:lower():sub(1, #name) == name:lower() or v.DisplayName:lower():sub(1, #name) == name:lower()) then
+                    name = v
+                    found = true
+                end
+            end
+            if name ~= nil and name ~= Target then
+                return name
+            end
+        end
+    end
+end
+
+plr.Chatted:Connect(function(msg)
+    local args = msg:lower():split(" ")
+    local command = args[1]
+    local target = args[2]
+
+    if command == prefix .. "wl" and target then
+        -- Add player to whitelist
+        local playerToAdd = findPlayer(target)
+        if playerToAdd and not isWhitelisted(playerToAdd) then
+            table.insert(whitelist, playerToAdd.Name)
+        end
+    elseif command == prefix .. "lol" then
+        startLoopAll()
+    elseif command == prefix .. "rc" then
+        stopLoopAll()
+        stopLoopSinglePlayer()
+    elseif command == prefix .. "kill" and target then
+        -- Add player to loopKill and activate loopAll
+        local playerToKill = findPlayer(target)
+        if playerToKill then
+            startLoopSinglePlayer(playerToKill)
+        end
+    end
+end)
+
+plr.CharacterAdded:Connect(function(character)
+    -- Fling player randomly upon respawn
+    local respawnPosition
+    local rand = math.random(1, 4)
+    if rand == 1 then
+        -- Void
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+    elseif rand == 2 then
+        -- Sideways
+        respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+    elseif rand == 3 then
+        -- Sky
+        respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+    else
+        -- Space
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50)) -- Adjust Y position to make them float
+    end
+    character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+end)
+  	end    
+}) Tab:AddButton({
+	Name = "chris gui",
+	Callback = function()
+      		loadstring(game:HttpGet(('https://pastebin.com/raw/fSxmgk0n'),true))()
+  	end    
+}) Tab:AddButton({
+	Name = "v1",
+	Callback = function()
+      		local prefix = ';'
+ 
+repeat wait() until game.Loaded
+local plrs = game:GetService'Players'
+local plr = plrs.LocalPlayer
+local loopall = false
+local whitelist = {}
+local loopKill = {}
+local function findplr(Target)
+    if game:GetService'Players':FindFirstChild(Target) then
+        return game:GetService'Players':FindFirstChild(Target)
+    else
+        if Target ~= nil and Target ~= "" and Target ~= " " and Target then
+            local name = Target
+            local found = false
+            for _,v in pairs(game:GetService'Players':GetPlayers()) do 
+                if not found and (v.Name:lower():sub(1,#name) == name:lower() or v.DisplayName:lower():sub(1,#name) == name:lower()) then
+                    name = v
+                    found = true
+                end
+            end
+            if name ~= nil and name ~= Target then
+                return name
+            end
+        end
+    end
+end
+plr.Chatted:connect(function(msg)
+    msg = msg:lower():split(' ')
+    if msg[1] == '/e' then
+        for i,v in next,msg do
+            msg[i] = msg[i+1]
+        end
+    end
+    if msg[1] == prefix..'lka' or (msg[1] == prefix..'loop' and msg[2] == 'all') then
+        loopall = true
+    elseif msg[1] == prefix..'kill' and findplr(msg[2]) and not table.find(loopKill,findplr(msg[2]).Name) then
+        table.insert(loopKill,findplr(msg[2]).Name)
+    elseif msg[1] == prefix..'wl' and findplr(msg[2]) and not table.find(whitelist,findplr(msg[2]).Name) then
+        table.insert(whitelist,findplr(msg[2]).Name)
+    elseif msg[1] == prefix..'bl' and findplr(msg[2]) and table.find(whitelist,findplr(msg[2]).Name) then
+        table.remove(whitelist,findplr(msg[2]).Name)
+    elseif msg[1] == prefix..'rc' then
+        table.clear(loopKill)
+        loopall = false
+        pcall(function()
+            plr.Character.PuttingDown:FireServer()
+        end)
+    end
+end)
+spawn(function()
+    while true do wait()
+        pcall(function()
+            if plr.Character.Ragdoll.Value then
+                plr.Character.GetUpEvent:FireServer()
+            end
+        end)
+        pcall(function()
+            for _,_2 in next,plr.Character:GetChildren() do
+                pcall(function()
+                    if _2:IsA'Accessory' and _2.Name ~= 'FakeAccessory' and _2:FindFirstChild'Handle' and _2.Handle:FindFirstChildOfClass'Weld' then
+                        local clone = _2:Clone()
+                        _2:Destroy()
+                        clone.Name = 'FakeAccessory'
+                        clone.Parent = plr.Character
+                    end
+                end)
+                pcall(function()
+                    if _2.Name == 'VelocityDamage' or _2.Name == 'GetPicked' then
+                        _2:Destroy()
+                    end
+                end)
+            end
+        end) 
+    end
+end) 
+while true do wait(0.1)
+    if loopall then
+        for _,v in next,plrs:GetPlayers() do
+
+            if v~=plr and not table.find(whitelist,v.Name) then
+                pcall(function()
+                    plr.Character.Picking:FireServer(v.Character.HumanoidRootPart,Vector3.new(math.huge,-math.huge,math.huge))
+                    wait(0.05)
+                    plr.Character.PuttingDown:FireServer()
+                end)
+            end
+        end
+    end
+    if loopKill ~= {} then
+        for _,v in next,plrs:GetPlayers() do
+            if table.find(loopKill,v.Name) then
+                pcall(function()
+                    local accs = v.Character:FindFirstChildOfClass'Accessory'
+                    if accs then
+                        if accs:FindFirstChild'Handle' then
+                            plr.Character.Picking:FireServer(accs.Handle,Vector3.new(math.huge,-math.huge,math.huge))
+                        elseif accs:IsA'BasePart' then
+                            plr.Character.Picking:FireServer(accs,Vector3.new(math.huge,-math.huge,math.huge))
+                        end
+                    else
+                        plr.Character.Picking:FireServer(v.Character.HumanoidRootPart,Vector3.new(math.huge,-math.huge,math.huge))
+                        wait(0.1)
+                        plr.Character.PuttingDown:FireServer()
+                    end
+                end)
+            end
+        end
+    end
+end
+  	end    
+}) local Tab = Window:MakeTab({
+	Name = "antis",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+}) Tab:AddButton({
+	Name = "anti v2 (CAN CAUSE LAG TO STUFF LIKE EQUIPING TOOLS AND GETTING UP",
+	Callback = function()
+      		while wait( 0.3) do
+
+_G.ArmAngleChange = true
+
+
+spawn(function( )
+while _G.ArmAngleChange == true do
+local args = {
+    [1] = true
+}
+
+game:GetService("Players").LocalPlayer.Character.ArmAngleChange:FireServer(unpack(args))
+wait( )
+end
+end)
+
+spawn(function( )
+while _G.ArmAngleChange == true do
+local args = {
+    [1] = CFrame.new(0.9999995827674866, 0.6509592533111572, 0.050753094255924225) * CFrame.Angles(0.3003006875514984, 0.04771772027015686, -0.09768833220005035)
+}
+
+game:GetService("Players").LocalPlayer.Character.ArmAngleChange:FireServer(unpack(args))
+
+spawn(function( )
+while _G.ArmAngleChange == true do
+local args = {
+    [1] = CFrame.new(0.9999999403953552, 0.5630171298980713, 1.1920928955078125e-07) * CFrame.Angles(-0, 0, -0)
+}
+wait(0.3)
+end
+end)
+
+game:GetService("Players").LocalPlayer.Character.ArmAngleChange:FireServer(unpack(args))
+wait(0.3)
+end
+end)
+end
+  	end    
+}) 
