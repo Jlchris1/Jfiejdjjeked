@@ -568,4 +568,257 @@ end
 end)
 end
   	end    
+}) Tab:AddButton({
+	Name = "v3 loopkill pt 2 (has anti rag",
+	Callback = function()
+      		local prefix = ';'
+
+repeat wait() until game:IsLoaded()
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local loopAll = false
+local loopSinglePlayer = nil
+local whitelist = {"bamned_alt3"}  -- Username to avoid from getting looped
+local loopKill = {}
+
+local UserInputService = game:GetService("UserInputService")
+
+local function shouldAvoid(player)
+    return table.find(whitelist, player.Name) ~= nil
+end
+
+local function isWhitelisted(player)
+    return table.find(whitelist, player.Name) ~= nil
+end
+
+local function findPlayer(Target)
+    if plrs:FindFirstChild(Target) then
+        return plrs:FindFirstChild(Target)
+    else
+        if Target and Target ~= "" and Target ~= " " then
+            local name = Target
+            for _, v in pairs(plrs:GetPlayers()) do
+                if v.Name:lower():sub(1, #name) == name:lower() or v.DisplayName:lower():sub(1, #name) == name:lower() then
+                    return v
+                end
+            end
+        end
+    end
+end
+
+local function protectWhitelistedPlayer(player)
+    local character = player.Character
+    if character then
+        -- Anti-ragdoll
+        if character:FindFirstChild("Ragdoll") and character.Ragdoll.Value then
+            character.GetUpEvent:FireServer()
+        end
+        
+        -- Arm deletion protection
+        local leftArm = character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+        local rightArm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm")
+
+        if leftArm then
+            local weld = Instance.new("Weld", leftArm)
+            weld.Part0 = leftArm
+            weld.Part1 = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+            weld.C0 = CFrame.new(-1.5, 0, 0)
+        end
+
+        if rightArm then
+            local weld = Instance.new("Weld", rightArm)
+            weld.Part0 = rightArm
+            weld.Part1 = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+            weld.C0 = CFrame.new(1.5, 0, 0)
+        end
+    end
+end
+
+local function ApplyChangesToPlayer(player)
+    local character = player.Character
+    if character and not shouldAvoid(player) then
+        local armAngleChange = character:FindFirstChild("ArmAngleChange")
+        if armAngleChange then
+            armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        local HeadWaist = character:FindFirstChild("HeadWaist")
+        if HeadWaist then
+            HeadWaist:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        local headAngleChange = character:FindFirstChild("HeadAngleChange")
+        if headAngleChange then
+            headAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+        end
+        
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Health = 0
+        end
+    end
+end
+
+local function loopActions()
+    while loopAll do
+        for _, v in ipairs(plrs:GetPlayers()) do
+            if v ~= plr and not shouldAvoid(v) then
+                pcall(function()
+                    local maxVelocity = Vector3.new(9e37, 9e37, 9e37)
+                    v.Character.PrimaryPart.Velocity = maxVelocity
+
+                    wait(0.0)
+                    plr.Character.Picking:FireServer(v.Character.Head, Vector3.new(0, -99999999999999999999999999999990, 0))
+                    wait(0.1)
+                    plr.Character.PuttingDown:FireServer()
+                    
+                    local armAngleChange = v.Character:FindFirstChild("ArmAngleChange")
+                    if armAngleChange then
+                        armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+                    end
+                    
+                    -- Movement towards torso
+                    local humanoidRootPart = v.Character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        local torsoPosition = humanoidRootPart.Position + Vector3.new(0, 0, -1)
+                        humanoidRootPart.CFrame = CFrame.new(torsoPosition)
+                        wait(0.1)
+                        humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+                    end
+                end)
+            end
+        end
+        wait(0.1)
+    end
+end
+
+local function loopSinglePlayerActions()
+    while loopSinglePlayer do
+        local player = loopSinglePlayer
+        if player and player.Character and not shouldAvoid(player) then
+            pcall(function()
+                local maxVelocity = Vector3.new(9e37, 9e37, 9e37)
+                player.Character.PrimaryPart.Velocity = maxVelocity
+                
+                wait(0.0)
+                plr.Character.Picking:FireServer(player.Character.Head, Vector3.new(0, -99999999999999999999999999999990, 0))
+                wait(0.3)
+                plr.Character.PuttingDown:FireServer()
+                
+                local armAngleChange = player.Character:FindFirstChild("ArmAngleChange")
+                if armAngleChange then
+                    armAngleChange:FireServer(CFrame.new(9e37, -9e37, 9e37))
+                end
+
+                -- Movement towards torso
+                local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    local torsoPosition = humanoidRootPart.Position + Vector3.new(0, 0, -1)
+                    humanoidRootPart.CFrame = CFrame.new(torsoPosition)
+                    wait(0.1)
+                    humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+                end
+
+                ApplyChangesToPlayer(player)
+            end)
+        end
+        wait(0.3)
+    end
+end
+
+local function startLoopAll()
+    loopAll = true
+    spawn(loopActions)
+end
+
+local function stopLoopAll()
+    loopAll = false
+end
+
+local function startLoopSinglePlayer(player)
+    loopSinglePlayer = player
+    spawn(loopSinglePlayerActions)
+end
+
+local function stopLoopSinglePlayer()
+    loopSinglePlayer = nil
+end
+
+spawn(function()
+    while true do wait()
+        pcall(function()
+            if plr.Character:FindFirstChild("Ragdoll") and plr.Character.Ragdoll.Value then
+                plr.Character.GetUpEvent:FireServer()
+            end
+        end)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
+        if loopAll then
+            stopLoopAll()
+            stopLoopSinglePlayer()
+        else
+            startLoopAll()
+        end
+    end
+end)
+
+plr.Chatted:Connect(function(msg)
+    local args = msg:lower():split(" ")
+    local command = args[1]
+    local target = args[2]
+
+    if command == prefix .. "wl" and target then
+        local playerToAdd = findPlayer(target)
+        if playerToAdd and not isWhitelisted(playerToAdd) then
+            table.insert(whitelist, playerToAdd.Name)
+            protectWhitelistedPlayer(playerToAdd)
+        end
+    elseif command == prefix .. "unwl" and target then
+        local playerToRemove = findPlayer(target)
+        if playerToRemove and isWhitelisted(playerToRemove) then
+            table.remove(whitelist, table.find(whitelist, playerToRemove.Name))
+        end
+    elseif command == prefix .. "lol" then
+        startLoopAll()
+    elseif command == prefix .. "rc" then
+        stopLoopAll()
+        stopLoopSinglePlayer()
+    elseif command == prefix .. "kill" and target then
+        local playerToKill = findPlayer(target)
+        if playerToKill then
+            startLoopSinglePlayer(playerToKill)
+        end
+    end
+end)
+
+plr.CharacterAdded:Connect(function(character)
+    local respawnPosition
+    local rand = math.random(1, 4)
+    if rand == 1 then
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50))
+    elseif rand == 2 then
+        respawnPosition = Vector3.new(math.random(-50, 50), 200, math.random(-50, 50))
+    elseif rand == 3 then
+        respawnPosition = Vector3.new(math.random(-50, 50), 500, math.random(-50, 50))
+    else
+        respawnPosition = Vector3.new(math.random(-50, 50), 1000, math.random(-50, 50))
+    end
+    character:SetPrimaryPartCFrame(CFrame.new(respawnPosition))
+end)
+
+for _, player in ipairs(plrs:GetPlayers()) do
+    player.CharacterAdded:Connect(function(character)
+        ApplyChangesToPlayer(player)
+    end)
+end
+
+plrs.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        ApplyChangesToPlayer(player)
+    end)
+end)
+  	end    
 }) 
